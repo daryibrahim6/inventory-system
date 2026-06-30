@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int                @id @default(autoincrement())
+  name         String
+  email        String             @unique
+  passwordHash String             @map("password_hash")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  transactions StockTransaction[]
+
+  @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  items     Item[]
+
+  @@map("categories")
+}
+
+model Item {
+  id           Int                @id @default(autoincrement())
+  code         String             @unique
+  name         String
+  categoryId   Int                @map("category_id")
+  unit         String
+  stock        Int                @default(0)
+  price        Decimal
+  createdAt    DateTime           @default(now()) @map("created_at")
+  category     Category           @relation(fields: [categoryId], references: [id])
+  transactions StockTransaction[]
+
+  @@map("items")
+}
+
+model StockTransaction {
+  id          Int      @id @default(autoincrement())
+  itemId      Int      @map("item_id")
+  type        String
+  quantity    Int
+  note        String?
+  createdById Int      @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  item        Item     @relation(fields: [itemId], references: [id])
+
+  @@map("stock_transactions")
+}
