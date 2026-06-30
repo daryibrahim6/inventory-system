@@ -1,6 +1,7 @@
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
+const ExcelJS = require("exceljs");
 
 const router = express.Router();
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
@@ -125,7 +126,10 @@ router.post("/stock-out", async (req, res) => {
 
 router.get("/history", async (req, res) => {
   try {
-    const { itemId, type, startDate, endDate } = req.query;
+    const { itemId, type, startDate, endDate, search, page = 1, limit = 20 } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     const where = {};
 
@@ -163,16 +167,104 @@ router.get("/history", async (req, res) => {
       }
     }
 
-    const transactions = await prisma.stockTransaction.findMany({
-      where,
-      include: { item: true, createdBy: { select: { id: true, name: true } } },
-      orderBy: { createdAt: "desc" },
-    });
+    if (search) {
+      where.item = {
+        name: { contains: search, mode: "insensitive" },
+      };
+    }
 
-    res.json(transactions);
+    const [transactions, total] = await Promise.all([
+      prisma.stockTransaction.findMany({
+        where,
+        include: { item: true, createdBy: { select: { id: true, name: true } } },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limitNum,
+      }),
+      prisma.stockTransaction.count({ where }),
+    ]);
+
+    res.json({
+      data: transactions,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
   } catch (err) {
     console.error("History error:", err);
     res.status(500).json({ error: "Gagal mengambil riwayat transaksi" });
+  }
+});
+
+router.get("/export", async (req, res) => {
+  try {
+    const { itemId, type, startDate, endDate } = req.query;
+
+    const where = {};
+    if (itemId) where.itemId = parseInt(itemId);
+    if (type) where.type = type;
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
+
+    const transactions = await prisma.stockTransaction.findMany({
+      where,
+      include: { item: true, createdBy: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Riwayat Transaksi");
+
+    sheet.columns = [
+      { header: "No", key: "no", width: 6 },
+      { header: "Tanggal", key: "date", width: 15 },
+      { header: "Jenis", key: "type", width: 10 },
+      { header: "Kode Barang", key: "itemCode", width: 15 },
+      { header: "Nama Barang", key: "itemName", width: 25 },
+      { header: "Jumlah", key: "quantity", width: 10 },
+      { header: "Keterangan", key: "note", width: 30 },
+      { header: "Dibuat Oleh", key: "createdBy", width: 20 },
+    ];
+
+    sheet.getRow(1).font = { bold: true };
+
+    transactions.forEach((tx, idx) => {
+      sheet.addRow({
+        no: idx + 1,
+        date: new Date(tx.createdAt).toLocaleDateString("id-ID"),
+        type: tx.type === "in" ? "Masuk" : "Keluar",
+        itemCode: tx.item?.code || "-",
+        itemName: tx.item?.name || "-",
+        quantity: tx.quantity,
+        note: tx.note || "-",
+        createdBy: tx.createdBy?.name || "-",
+      });
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=riwayat-transaksi.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("Export error:", err);
+    res.status(500).json({ error: "Gagal export data" });
   }
 });
 

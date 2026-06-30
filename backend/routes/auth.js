@@ -27,7 +27,7 @@ router.post("/register", async (req, res) => {
 
     const user = await prisma.user.create({
       data: { name, email, passwordHash },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
     });
 
     res.status(201).json({ message: "Register berhasil", user });
@@ -56,12 +56,12 @@ router.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    res.json({ message: "Login berhasil", token });
+    res.json({ message: "Login berhasil", token, role: user.role });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Gagal melakukan login" });

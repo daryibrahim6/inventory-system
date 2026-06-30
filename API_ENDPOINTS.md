@@ -27,6 +27,7 @@ POST /api/auth/register
     "id": 1,
     "name": "John Doe",
     "email": "john@example.com",
+    "role": "staff",
     "createdAt": "2026-06-30T10:00:00.000Z"
   }
 }
@@ -52,7 +53,8 @@ POST /api/auth/login
 ```json
 {
   "message": "Login berhasil",
-  "token": "eyJhbGciOiJIUzI1NiIs..."
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "role": "staff"
 }
 ```
 
@@ -60,23 +62,38 @@ POST /api/auth/login
 
 ## Categories
 
-**Auth Required:** Semua endpoint butuh header `Authorization: Bearer <token>`
+**Auth Required:** Header `Authorization: Bearer <token>`
 
 ### Get All Categories
 
 ```
-GET /api/categories
+GET /api/categories?search=&page=1&limit=10
 ```
+
+**Query Parameters:**
+| Parameter | Tipe | Default | Deskripsi |
+|-----------|------|---------|-----------|
+| `search` | string | - | Cari berdasarkan nama |
+| `page` | number | 1 | Halaman |
+| `limit` | number | 10 | Jumlah per halaman |
 
 **Response (200):**
 ```json
-[
-  {
-    "id": 1,
-    "name": "Makanan",
-    "createdAt": "2026-06-30T10:00:00.000Z"
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Makanan",
+      "createdAt": "2026-06-30T10:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 5,
+    "totalPages": 1
   }
-]
+}
 ```
 
 ---
@@ -85,15 +102,6 @@ GET /api/categories
 
 ```
 GET /api/categories/:id
-```
-
-**Response (200):**
-```json
-{
-  "id": 1,
-  "name": "Makanan",
-  "createdAt": "2026-06-30T10:00:00.000Z"
-}
 ```
 
 ---
@@ -108,15 +116,6 @@ POST /api/categories
 ```json
 {
   "name": "Minuman"
-}
-```
-
-**Response (201):**
-```json
-{
-  "id": 2,
-  "name": "Minuman",
-  "createdAt": "2026-06-30T10:00:00.000Z"
 }
 ```
 
@@ -135,15 +134,6 @@ PUT /api/categories/:id
 }
 ```
 
-**Response (200):**
-```json
-{
-  "id": 1,
-  "name": "Makanan & Minuman",
-  "createdAt": "2026-06-30T10:00:00.000Z"
-}
-```
-
 ---
 
 ### Delete Category
@@ -152,43 +142,52 @@ PUT /api/categories/:id
 DELETE /api/categories/:id
 ```
 
-**Response (200):**
-```json
-{
-  "message": "Kategori berhasil dihapus"
-}
-```
-
 ---
 
 ## Items
 
-**Auth Required:** Semua endpoint butuh header `Authorization: Bearer <token>`
+**Auth Required:** Header `Authorization: Bearer <token>`
 
 ### Get All Items
 
 ```
-GET /api/items
+GET /api/items?search=&categoryId=&page=1&limit=10
 ```
+
+**Query Parameters:**
+| Parameter | Tipe | Default | Deskripsi |
+|-----------|------|---------|-----------|
+| `search` | string | - | Cari berdasarkan kode/nama |
+| `categoryId` | number | - | Filter berdasarkan kategori |
+| `page` | number | 1 | Halaman |
+| `limit` | number | 10 | Jumlah per halaman |
 
 **Response (200):**
 ```json
-[
-  {
-    "id": 1,
-    "code": "MKN001",
-    "name": "Nasi Goreng",
-    "categoryId": 1,
-    "unit": "Porsi",
-    "stock": 10,
-    "price": "25000",
-    "createdAt": "2026-06-30T10:00:00.000Z",
-    "category": {
+{
+  "data": [
+    {
       "id": 1,
-      "name": "Makanan"
+      "code": "MKN001",
+      "name": "Nasi Goreng",
+      "categoryId": 1,
+      "unit": "Porsi",
+      "stock": 10,
+      "price": "25000",
+      "createdAt": "2026-06-30T10:00:00.000Z",
+      "category": {
+        "id": 1,
+        "name": "Makanan"
+      }
     }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "totalPages": 3
   }
-]
+}
 ```
 
 ---
@@ -223,38 +222,6 @@ POST /api/items
 - `categoryId` harus exist di tabel categories
 - `code` harus unik
 
-**Response (201):**
-```json
-{
-  "id": 1,
-  "code": "MKN001",
-  "name": "Nasi Goreng",
-  "categoryId": 1,
-  "unit": "Porsi",
-  "stock": 10,
-  "price": "25000",
-  "createdAt": "2026-06-30T10:00:00.000Z",
-  "category": {
-    "id": 1,
-    "name": "Makanan"
-  }
-}
-```
-
-**Error (400) - categoryId not found:**
-```json
-{
-  "error": "Kategori tidak ditemukan"
-}
-```
-
-**Error (400) - duplicate code:**
-```json
-{
-  "error": "Item dengan code \"MKN001\" sudah ada"
-}
-```
-
 ---
 
 ### Update Item
@@ -283,7 +250,7 @@ DELETE /api/items/:id
 
 ## Transactions
 
-**Auth Required:** Semua endpoint butuh header `Authorization: Bearer <token>`
+**Auth Required:** Header `Authorization: Bearer <token>`
 
 ### Stock In (Barang Masuk)
 
@@ -296,25 +263,8 @@ POST /api/transactions/stock-in
 {
   "itemId": 1,
   "quantity": 10,
-  "note": "Restok dari supplier"
-}
-```
-
-**Response (201):**
-```json
-{
-  "message": "Barang masuk berhasil",
-  "item": {
-    "id": 1,
-    "stock": 20
-  },
-  "transaction": {
-    "id": 1,
-    "itemId": 1,
-    "type": "in",
-    "quantity": 10,
-    "note": "Restok dari supplier"
-  }
+  "note": "Restok dari supplier",
+  "date": "2026-06-30"
 }
 ```
 
@@ -331,25 +281,8 @@ POST /api/transactions/stock-out
 {
   "itemId": 1,
   "quantity": 5,
-  "note": "Penjualan"
-}
-```
-
-**Response (201):**
-```json
-{
-  "message": "Barang keluar berhasil",
-  "item": {
-    "id": 1,
-    "stock": 15
-  },
-  "transaction": {
-    "id": 2,
-    "itemId": 1,
-    "type": "out",
-    "quantity": 5,
-    "note": "Penjualan"
-  }
+  "note": "Penjualan",
+  "date": "2026-06-30"
 }
 ```
 
@@ -365,36 +298,58 @@ POST /api/transactions/stock-out
 ### Riwayat Transaksi
 
 ```
-GET /api/transactions/history?itemId=1&type=in&startDate=2026-06-01&endDate=2026-06-30
+GET /api/transactions/history?itemId=1&type=in&startDate=2026-06-01&endDate=2026-06-30&search=&page=1&limit=20
 ```
 
-**Query Parameters (semua optional):**
-| Parameter | Tipe | Deskripsi |
-|-----------|------|-----------|
-| `itemId` | number | Filter berdasarkan item |
-| `type` | string | `"in"` atau `"out"` |
-| `startDate` | string | Format: `YYYY-MM-DD` |
-| `endDate` | string | Format: `YYYY-MM-DD` |
+**Query Parameters:**
+| Parameter | Tipe | Default | Deskripsi |
+|-----------|------|---------|-----------|
+| `itemId` | number | - | Filter berdasarkan item |
+| `type` | string | - | `"in"` atau `"out"` |
+| `startDate` | string | - | Format: `YYYY-MM-DD` |
+| `endDate` | string | - | Format: `YYYY-MM-DD` |
+| `search` | string | - | Cari berdasarkan nama barang |
+| `page` | number | 1 | Halaman |
+| `limit` | number | 20 | Jumlah per halaman |
 
 **Response (200):**
 ```json
-[
-  {
-    "id": 1,
-    "itemId": 1,
-    "type": "in",
-    "quantity": 10,
-    "note": "Restok dari supplier",
-    "createdAt": "2026-06-30T10:00:00.000Z",
-    "item": {
-      "name": "Nasi Goreng"
-    },
-    "createdBy": {
-      "name": "John Doe"
+{
+  "data": [
+    {
+      "id": 1,
+      "itemId": 1,
+      "type": "in",
+      "quantity": 10,
+      "note": "Restok dari supplier",
+      "createdAt": "2026-06-30T10:00:00.000Z",
+      "item": {
+        "name": "Nasi Goreng"
+      },
+      "createdBy": {
+        "name": "John Doe"
+      }
     }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 50,
+    "totalPages": 3
   }
-]
+}
 ```
+
+---
+
+### Export Riwayat Transaksi ke Excel
+
+```
+GET /api/transactions/export?itemId=1&type=in&startDate=2026-06-01&endDate=2026-06-30
+```
+
+Download file Excel (.xlsx) dengan format:
+- Kolom: No, Tanggal, Jenis, Kode Barang, Nama Barang, Jumlah, Keterangan, Dibuat Oleh
 
 ---
 
@@ -426,11 +381,64 @@ GET /api/dashboard
       }
     }
   ],
-  "monthlyTransactions": 15,
+  "monthlyTransactionsIn": 10,
+  "monthlyTransactionsOut": 5,
   "period": {
     "start": "2026-06-01T00:00:00.000Z",
     "end": "2026-06-30T23:59:59.999Z"
   }
+}
+```
+
+---
+
+### Low Stock Alert
+
+```
+GET /api/dashboard/low-stock-alert?threshold=5
+```
+
+**Query Parameters:**
+| Parameter | Tipe | Default | Deskripsi |
+|-----------|------|---------|-----------|
+| `threshold` | number | 5 | Batas stok minimum |
+
+**Response (200):**
+```json
+{
+  "threshold": 5,
+  "count": 3,
+  "items": [
+    {
+      "id": 1,
+      "code": "MKN001",
+      "name": "Nasi Goreng",
+      "stock": 2,
+      "unit": "Porsi",
+      "category": {
+        "name": "Makanan"
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Role-Based Access Control
+
+Role pengguna:
+- `admin` - Akses penuh (CRUD semua data)
+- `staff` - Akses terbatas (hanya melihat dan membuat transaksi)
+
+Untuk menggunakan role admin pada register:
+```json
+POST /api/auth/register
+{
+  "name": "Admin",
+  "email": "admin@example.com",
+  "password": "admin123",
+  "role": "admin"
 }
 ```
 
@@ -442,5 +450,6 @@ GET /api/dashboard
 |------|-----------|
 | 400 | Bad Request - Data tidak valid |
 | 401 | Unauthorized - Token tidak ada/invalid/expired |
+| 403 | Forbidden - Akses ditolak (role tidak sesuai) |
 | 404 | Not Found - Resource tidak ditemukan |
 | 500 | Internal Server Error |

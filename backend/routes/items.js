@@ -8,11 +8,42 @@ const prisma = new PrismaClient({ adapter });
 
 router.get("/", async (req, res) => {
   try {
-    const items = await prisma.item.findMany({
-      include: { category: true },
-      orderBy: { createdAt: "desc" },
+    const { search, categoryId, page = 1, limit = 10 } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { code: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    if (categoryId) {
+      where.categoryId = parseInt(categoryId);
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.item.findMany({
+        where,
+        include: { category: true },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limitNum,
+      }),
+      prisma.item.count({ where }),
+    ]);
+
+    res.json({
+      data: items,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
     });
-    res.json(items);
   } catch (err) {
     res.status(500).json({ error: "Gagal mengambil data item" });
   }

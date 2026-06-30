@@ -8,10 +8,34 @@ const prisma = new PrismaClient({ adapter });
 
 router.get("/", async (req, res) => {
   try {
-    const categories = await prisma.category.findMany({
-      orderBy: { createdAt: "desc" },
+    const { search, page = 1, limit = 10 } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = search
+      ? { name: { contains: search, mode: "insensitive" } }
+      : {};
+
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limitNum,
+      }),
+      prisma.category.count({ where }),
+    ]);
+
+    res.json({
+      data: categories,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
     });
-    res.json(categories);
   } catch (err) {
     res.status(500).json({ error: "Gagal mengambil data kategori" });
   }

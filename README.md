@@ -88,6 +88,28 @@ Buat akun baru melalui halaman register, atau gunakan akun test:
 - Email: `test@example.com`
 - Password: `password123`
 
+## Fitur Bonus
+
+### 1. Role-Based Access Control
+- **admin** - Akses penuh (CRUD semua data)
+- **staff** - Akses terbatas (hanya melihat dan membuat transaksi)
+
+### 2. Pagination & Search
+Semua tabel mendukung pagination dan pencarian:
+- Categories: `GET /api/categories?search=&page=1&limit=10`
+- Items: `GET /api/items?search=&categoryId=&page=1&limit=10`
+- Transactions: `GET /api/transactions/history?search=&page=1&limit=20`
+
+### 3. Export ke Excel
+Download riwayat transaksi dalam format Excel:
+- Endpoint: `GET /api/transactions/export`
+- Support filter: itemId, type, startDate, endDate
+
+### 4. Notifikasi Stok Minimum
+Endpoint untuk mengecek barang dengan stok rendah:
+- Endpoint: `GET /api/dashboard/low-stock-alert?threshold=5`
+- Default threshold: 5 unit
+
 ## Keamanan Token
 
 Token JWT disimpan di **localStorage** (sisi client). Alasan:
@@ -108,12 +130,13 @@ inventory-system/
 │   │   └── migrations/          # Migration files
 │   ├── routes/
 │   │   ├── auth.js              # Register & Login
-│   │   ├── categories.js        # CRUD Kategori
-│   │   ├── items.js             # CRUD Item
-│   │   ├── transactions.js      # Transaksi Stok
-│   │   └── dashboard.js         # Dashboard API
+│   │   ├── categories.js        # CRUD Kategori (pagination + search)
+│   │   ├── items.js             # CRUD Item (pagination + search)
+│   │   ├── transactions.js      # Transaksi Stok + Export Excel
+│   │   └── dashboard.js         # Dashboard API + Low Stock Alert
 │   ├── middleware/
-│   │   └── auth.js              # JWT verification
+│   │   ├── auth.js              # JWT verification
+│   │   └── authorize.js         # Role-based access control
 │   ├── prisma.config.ts         # Prisma config (v7)
 │   ├── app.js                   # Express entry point
 │   ├── .env                     # Environment variables (NOT committed)
@@ -121,10 +144,16 @@ inventory-system/
 ├── frontend/
 │   ├── src/
 │   │   ├── Login.jsx            # Halaman login
-│   │   ├── Dashboard.jsx        # Dashboard
+│   │   ├── Register.jsx         # Halaman register
+│   │   ├── Dashboard.jsx        # Dashboard dengan statistik
+│   │   ├── Categories.jsx       # CRUD Kategori + pagination
+│   │   ├── Items.jsx            # CRUD Item + pagination
+│   │   ├── Transactions.jsx     # Transaksi + filter + export
+│   │   ├── Sidebar.jsx          # Navigasi sidebar
 │   │   └── App.jsx              # Router
 │   └── package.json
-└── README.md
+├── README.md
+└── API_ENDPOINTS.md
 ```
 
 ## API Endpoints

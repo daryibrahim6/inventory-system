@@ -80,3 +80,27 @@ router.get("/", async (req, res) => {
 });
 
 module.exports = router;
+
+router.get("/low-stock-alert", async (req, res) => {
+  try {
+    const { threshold = 5 } = req.query;
+    const thresholdNum = parseInt(threshold);
+
+    const items = await prisma.item.findMany({
+      where: {
+        stock: { lte: thresholdNum },
+      },
+      include: { category: true },
+      orderBy: { stock: "asc" },
+    });
+
+    res.json({
+      threshold: thresholdNum,
+      count: items.length,
+      items,
+    });
+  } catch (err) {
+    console.error("Low stock alert error:", err);
+    res.status(500).json({ error: "Gagal mengambil data notifikasi stok" });
+  }
+});
