@@ -1,4 +1,4 @@
-.login-page {
+.register-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -7,7 +7,7 @@
   background: #f8fafc;
 }
 
-.login-card {
+.register-card {
   width: 100%;
   max-width: 400px;
   background: #ffffff;
@@ -17,12 +17,12 @@
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
 }
 
-.login-header {
+.register-header {
   text-align: center;
   margin-bottom: 32px;
 }
 
-.login-logo {
+.register-logo {
   width: 56px;
   height: 56px;
   background: #0f172a;
@@ -34,14 +34,14 @@
   color: #ffffff;
 }
 
-.login-header h1 {
+.register-header h1 {
   font-size: 22px;
   font-weight: 600;
   color: #0f172a;
   margin: 0 0 4px 0;
 }
 
-.login-header p {
+.register-header p {
   font-size: 14px;
   color: #64748b;
   margin: 0;
@@ -72,6 +72,10 @@
   margin-bottom: 6px;
 }
 
+.required {
+  color: #dc2626;
+}
+
 .form-group input {
   width: 100%;
   padding: 12px 16px;
@@ -93,7 +97,14 @@
   color: #94a3b8;
 }
 
-.login-button {
+.helper-text {
+  display: block;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.register-button {
   width: 100%;
   padding: 12px 24px;
   font-size: 14px;
@@ -106,32 +117,32 @@
   transition: background 0.2s, transform 0.1s;
 }
 
-.login-button:hover:not(:disabled) {
+.register-button:hover:not(:disabled) {
   background: #1e293b;
 }
 
-.login-button:active:not(:disabled) {
+.register-button:active:not(:disabled) {
   transform: scale(0.98);
 }
 
-.login-button:disabled {
+.register-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.register-link {
+.login-link {
   text-align: center;
   margin-top: 24px;
   font-size: 14px;
   color: #64748b;
 }
 
-.register-link a {
+.login-link a {
   color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
 }
 
-.register-link a:hover {
+.login-link a:hover {
   text-decoration: underline;
 }

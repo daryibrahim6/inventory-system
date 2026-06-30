@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './Login.css';
+import './Register.css';
 
 const API_URL = 'http://localhost:3001/api';
 
-function Login() {
+function Register() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,20 +18,19 @@ function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Login gagal');
+        throw new Error(data.error || 'Register gagal');
       }
 
-      localStorage.setItem('token', data.token);
-      navigate('/dashboard');
+      navigate('/login');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -39,16 +39,16 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-header">
-          <div className="login-logo">
+    <div className="register-page">
+      <div className="register-card">
+        <div className="register-header">
+          <div className="register-logo">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
             </svg>
           </div>
           <h1>Inventory System</h1>
-          <p>Masuk ke akun Anda</p>
+          <p>Buat akun baru</p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -64,7 +64,19 @@ function Login() {
           )}
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="name">Nama <span className="required">*</span></label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Masukkan nama lengkap"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email <span className="required">*</span></label>
             <input
               id="email"
               type="email"
@@ -76,7 +88,7 @@ function Login() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Password <span className="required">*</span></label>
             <input
               id="password"
               type="password"
@@ -84,20 +96,22 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Masukkan password"
               required
+              minLength={6}
             />
+            <span className="helper-text">Minimal 6 karakter</span>
           </div>
 
-          <button type="submit" className="login-button" disabled={loading}>
-            {loading ? 'Masuk...' : 'Masuk'}
+          <button type="submit" className="register-button" disabled={loading}>
+            {loading ? 'Mendaftar...' : 'Daftar'}
           </button>
         </form>
 
-        <p className="register-link">
-          Belum punya akun? <Link to="/register">Daftar</Link>
+        <p className="login-link">
+          Sudah punya akun? <Link to="/login">Masuk</Link>
         </p>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default Register;
