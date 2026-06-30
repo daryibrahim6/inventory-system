@@ -41,8 +41,8 @@ function Transactions() {
       const res = await fetch(`${API_URL}/transactions/history?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error('Gagal memuat transaksi');
       const data = await res.json();
-      setTransactions(data.data);
-      setPagination(data.pagination);
+      setTransactions(data.data || []);
+      setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }, [page, filterItem, filterType, filterStart, filterEnd]);

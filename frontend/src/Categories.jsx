@@ -28,8 +28,8 @@ function Categories() {
       });
       if (!res.ok) throw new Error('Gagal memuat kategori');
       const data = await res.json();
-      setCategories(data.data);
-      setPagination(data.pagination);
+      setCategories(data.data || []);
+      setPagination(data.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
     } catch (err) {
       setError(err.message);
     } finally {

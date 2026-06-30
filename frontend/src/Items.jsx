@@ -29,8 +29,8 @@ function Items() {
       });
       if (!res.ok) throw new Error('Gagal memuat barang');
       const data = await res.json();
-      setItems(data.data);
-      setPagination(data.pagination);
+      setItems(data.data || []);
+      setPagination(data.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
     } catch (err) {
       setError(err.message);
     } finally {
