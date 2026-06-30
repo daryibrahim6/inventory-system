@@ -26,7 +26,7 @@ function Transactions() {
   const fetchItems = async () => {
     try {
       const res = await fetch(`${API_URL}/items?limit=100`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) { const data = await res.json(); setItems(data.data); }
+      if (res.ok) { const data = await res.json(); setItems(data.data || []); }
     } catch {}
   };
 
