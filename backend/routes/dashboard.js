@@ -17,7 +17,8 @@ router.get("/", async (req, res) => {
       totalCategories,
       totalInventoryValue,
       lowStockItems,
-      monthlyTransactions,
+      monthlyTransactionsIn,
+      monthlyTransactionsOut,
     ] = await Promise.all([
       prisma.item.count(),
 
@@ -41,6 +42,17 @@ router.get("/", async (req, res) => {
 
       prisma.stockTransaction.count({
         where: {
+          type: "in",
+          createdAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+      }),
+
+      prisma.stockTransaction.count({
+        where: {
+          type: "out",
           createdAt: {
             gte: startOfMonth,
             lte: endOfMonth,
@@ -54,7 +66,8 @@ router.get("/", async (req, res) => {
       totalCategories,
       totalInventoryValue,
       lowStockItems,
-      monthlyTransactions,
+      monthlyTransactionsIn,
+      monthlyTransactionsOut,
       period: {
         start: startOfMonth.toISOString(),
         end: endOfMonth.toISOString(),
