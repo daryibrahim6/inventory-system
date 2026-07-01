@@ -3,7 +3,6 @@ import './Sidebar.css';
 
 function Sidebar() {
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
 
   const handleLogout = () => {
     localStorage.removeItem('token');

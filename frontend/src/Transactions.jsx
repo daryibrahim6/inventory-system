@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import './Categories.css';
 import './Transactions.css';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = '/api';
 
 function Transactions() {
   const [items, setItems] = useState([]);
@@ -23,12 +23,12 @@ function Transactions() {
 
   const token = localStorage.getItem('token');
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/items?limit=100`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) { const data = await res.json(); setItems(data.data || []); }
     } catch {}
-  };
+  }, [token]);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -45,9 +45,9 @@ function Transactions() {
       setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
-  }, [page, filterItem, filterType, filterStart, filterEnd]);
+  }, [page, filterItem, filterType, filterStart, filterEnd, token]);
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => { fetchItems(); }, [fetchItems]);
   useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
 
   const handleSubmit = async (e) => {

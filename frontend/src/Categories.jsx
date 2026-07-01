@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import './Categories.css';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = '/api';
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -35,7 +35,7 @@ function Categories() {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, token]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 

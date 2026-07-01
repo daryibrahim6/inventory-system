@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import './Dashboard.css';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = '/api';
 
 function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
@@ -18,7 +18,7 @@ function Dashboard() {
       return;
     }
     fetchDashboard();
-  }, []);
+  }, [navigate]);
 
   const fetchDashboard = async () => {
     try {

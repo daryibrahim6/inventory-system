@@ -79,8 +79,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-module.exports = router;
-
 router.get("/low-stock-alert", async (req, res) => {
   try {
     const { threshold = 5 } = req.query;
@@ -104,3 +102,5 @@ router.get("/low-stock-alert", async (req, res) => {
     res.status(500).json({ error: "Gagal mengambil data notifikasi stok" });
   }
 });
+
+module.exports = router;

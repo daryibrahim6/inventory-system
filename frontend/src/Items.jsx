@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import './Categories.css';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = '/api';
 
 function Items() {
   const [items, setItems] = useState([]);
@@ -36,9 +36,9 @@ function Items() {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, token]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/categories?limit=100`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -48,9 +48,9 @@ function Items() {
         setCategories(data.data);
       }
     } catch {}
-  };
+  }, [token]);
 
-  useEffect(() => { fetchItems(); fetchCategories(); }, [fetchItems]);
+  useEffect(() => { fetchItems(); fetchCategories(); }, [fetchItems, fetchCategories]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
